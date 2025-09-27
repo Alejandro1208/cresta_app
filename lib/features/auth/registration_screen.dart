@@ -29,9 +29,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   }
 
   void _submitForm() {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const MainScreen()),
+    );
   }
 
   @override
@@ -40,27 +40,36 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
     return Scaffold(
       backgroundColor: isDesktop ? Theme.of(context).cardColor : Theme.of(context).scaffoldBackgroundColor,
-      appBar: isDesktop ? null : AppBar(title: const Text('Crea tu Cuenta')),
-      floatingActionButton: isDesktop ? null : FloatingActionButton(
-        onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
-        backgroundColor: Theme.of(context).cardColor,
-        elevation: 1,
-        child: Icon(
-          ref.watch(themeProvider) == ThemeMode.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-          color: AppColors.lavandaSuave,
-        ),
-      ),
+      appBar: isDesktop
+          ? null
+          // Esta AppBar ya es correcta para móvil, la flecha aparecerá con la navegación corregida.
+          : AppBar(
+              title: const Text('Crea tu Cuenta'),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
+      floatingActionButton: isDesktop
+          ? null
+          : FloatingActionButton(
+              onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
+              backgroundColor: Theme.of(context).cardColor,
+              elevation: 1,
+              child: Icon(
+                ref.watch(themeProvider) == ThemeMode.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                color: AppColors.lavandaSuave,
+              ),
+            ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (isDesktop) {
             return Row(
               children: [
                 Expanded(child: _buildBrandingPanel()),
-                Expanded(child: _buildFormPanel()),
+                Expanded(child: _buildFormPanel(isDesktop: true)), // Pasamos el flag
               ],
             );
           } else {
-            return SingleChildScrollView(child: _buildFormPanel());
+            return SingleChildScrollView(child: _buildFormPanel(isDesktop: false));
           }
         },
       ),
@@ -91,61 +100,77 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     );
   }
 
-  Widget _buildFormPanel() {
-    return Padding(
-      padding: const EdgeInsets.all(40.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Crea tu Cuenta',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 32),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Nombre Completo'),
-              validator: (v) => v == null || v.trim().isEmpty ? 'Ingresa tu nombre.' : null,
-            ),
-            const SizedBox(height: 24),
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-              keyboardType: TextInputType.emailAddress,
-              validator: (v) => v == null || !v.contains('@') ? 'Ingresa un email válido.' : null,
-            ),
-            const SizedBox(height: 24),
-            TextFormField(
-              controller: _passwordController,
-              obscureText: !_isPasswordVisible,
-              decoration: InputDecoration(
-                labelText: 'Contraseña (mín. 8 caracteres)',
-                suffixIcon: IconButton(
-                  icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility),
-                  onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
-                ),
+Widget _buildFormPanel({required bool isDesktop}) {
+  return Stack(
+    alignment: Alignment.center,
+    children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Crea tu Cuenta',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold),
               ),
-              validator: (v) => v == null || v.length < 8 ? 'La contraseña es muy corta.' : null,
-            ),
-            const SizedBox(height: 48),
-            ElevatedButton(
-              onPressed: _submitForm,
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 20)),
-              child: const Text('Registrarme'),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Al registrarte, aceptas nuestros Términos de Servicio y Política de Privacidad.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.grisMedio, fontSize: 12),
-            ),
-          ],
+              const SizedBox(height: 32),
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Nombre Completo'),
+                validator: (v) => v == null || v.trim().isEmpty ? 'Ingresa tu nombre.' : null,
+              ),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+                validator: (v) => v == null || !v.contains('@') ? 'Ingresa un email válido.' : null,
+              ),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _passwordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña (mín. 8 caracteres)',
+                  suffixIcon: IconButton(
+                    icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                  ),
+                ),
+                validator: (v) => v == null || v.length < 8 ? 'La contraseña es muy corta.' : null,
+              ),
+              const SizedBox(height: 48),
+              ElevatedButton(
+                onPressed: _submitForm,
+                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 20)),
+                child: const Text('Registrarme'),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Al registrarte, aceptas nuestros Términos de Servicio y Política de Privacidad.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.grisMedio, fontSize: 12),
+              ),
+            ],
+          ),
         ),
       ),
-    );
-  }
+      if (isDesktop)
+        Positioned(
+          top: 20, // Ajustamos la posición para que no sea negativa
+          left: 20,
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Volver',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+    ],
+  );
+  // --- FIN DE LA CORRECCIÓN ---
+}
 }

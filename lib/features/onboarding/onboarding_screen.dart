@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cresta_app/features/auth/access_screen.dart';
 import 'package:cresta_app/features/onboarding/widgets/onboarding_slide_widget.dart';
 import 'package:cresta_app/features/onboarding/widgets/page_indicator_widget.dart';
+// 1. Falta este import para el tema
+import 'package:cresta_app/theme/theme_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 final onboardingPageIndexProvider = StateProvider<int>((ref) => 0);
@@ -42,13 +44,35 @@ final onboardingSlides = [
   ),
 ];
 
-class OnboardingScreen extends ConsumerWidget {
+// 2. El widget debe ser Stateful para manejar el PageController correctamente
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  // El PageController ahora se crea una sola vez aquí
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: ref.read(onboardingPageIndexProvider));
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentPageIndex = ref.watch(onboardingPageIndexProvider);
-    final pageController = PageController();
+    // Definimos la variable themeMode que te faltaba
+    final themeMode = ref.watch(themeProvider);
     final isDesktop = MediaQuery.of(context).size.width > 800;
 
     Widget buildKeyFeatures(OnboardingSlideData slide) {
@@ -65,6 +89,40 @@ class OnboardingScreen extends ConsumerWidget {
             ],
           ),
         )).toList(),
+      );
+    }
+    
+    // 3. Creamos un widget para los botones de navegación (Atrás y Siguiente)
+    Widget buildNavigationButtons() {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Botón "Atrás" que aparece solo si no es la primera página
+          if (currentPageIndex > 0)
+            TextButton(
+              onPressed: () {
+                _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+              },
+              child: const Text('Atrás'),
+            )
+          else
+            const SizedBox(width: 60), // Espaciador para mantener el equilibrio
+
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            onPressed: () {
+              if (currentPageIndex == onboardingSlides.length - 1) {
+                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AccessScreen()));
+              } else {
+                _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+              }
+            },
+            child: Text(currentPageIndex == onboardingSlides.length - 1 ? 'Comenzar' : 'Siguiente'),
+          ),
+        ],
       );
     }
 
@@ -89,27 +147,15 @@ class OnboardingScreen extends ConsumerWidget {
           const SizedBox(height: 48),
           PageIndicatorWidget(pageCount: onboardingSlides.length, currentPage: currentPageIndex),
           const SizedBox(height: 32),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            onPressed: () {
-              if (currentPageIndex == onboardingSlides.length - 1) {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AccessScreen()));
-              } else {
-                pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-              }
-            },
-            child: Text(currentPageIndex == onboardingSlides.length - 1 ? 'Comenzar' : 'Siguiente'),
-          ),
+          // Usamos el nuevo widget de botones
+          buildNavigationButtons(),
         ],
       );
     }
 
     Widget buildImageArea() {
       return PageView.builder(
-        controller: pageController,
+        controller: _pageController,
         onPageChanged: (index) => ref.read(onboardingPageIndexProvider.notifier).state = index,
         itemBuilder: (context, index) => OnboardingSlideWidget(imageUrl: onboardingSlides[index].imageUrl),
         itemCount: onboardingSlides.length,
@@ -117,6 +163,19 @@ class OnboardingScreen extends ConsumerWidget {
     }
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
+            color: isDesktop ? null : Colors.white,
+            onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
+            tooltip: 'Cambiar tema',
+          )
+        ],
+      ),
       body: isDesktop
           ? Row(
               children: [
@@ -136,7 +195,7 @@ class OnboardingScreen extends ConsumerWidget {
                 Positioned(
                   bottom: 0, left: 0, right: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 48),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),

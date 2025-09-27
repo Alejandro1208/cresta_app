@@ -1,69 +1,104 @@
 import 'package:flutter/material.dart';
-import 'package:cresta_app/main.dart'; // Para AppColors
-import 'package:cresta_app/features/search/search_results_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cresta_app/main.dart';
+import 'package:cresta_app/theme/theme_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cresta_app/widgets/app_logo.dart';
 
-class TalentSearchScreen extends StatelessWidget {
+class TalentSearchScreen extends ConsumerWidget {
   const TalentSearchScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const popularTags = [
-      'React',
-      'Diseño UX',
-      'Gestión de Proyectos',
-      'Node.js',
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDesktop = MediaQuery.of(context).size.width > 800;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Buscar Talentos')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      backgroundColor: Theme.of(context).cardColor,
+      appBar: AppBar(
+        title: const Text('Buscador de Talentos'),
+        backgroundColor: Theme.of(context).cardColor,
+        elevation: 1,
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (isDesktop) {
+            return Row(
+              children: [
+                Expanded(child: _buildBrandingPanel(context)),
+                Expanded(flex: 2, child: _buildSearchPanel(context)),
+              ],
+            );
+          } else {
+            return _buildSearchPanel(context);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildBrandingPanel(BuildContext context) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // --- Barra de Búsqueda ---
+            const AppLogo(height: 80),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Text(
+                'Encuentra profesionales con credibilidad demostrada.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchPanel(BuildContext context) {
+    final popularTags = ['React', 'Diseño UX', 'Gestión de Proyectos', 'Node.js', 'Flutter'];
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(40.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Campo de búsqueda
             TextField(
               decoration: InputDecoration(
                 hintText: 'Buscar habilidad, puesto o tecnología...',
                 prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: AppColors.blancoPuro,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide.none,
                 ),
+                filled: true,
+                fillColor: Theme.of(context).scaffoldBackgroundColor,
               ),
-              onSubmitted: (value) {
-                if (value.isNotEmpty) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          SearchResultsScreen(searchTerm: value),
-                    ),
-                  );
-                }
-              },
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 48),
 
-            // --- Contenido Inicial ---
+            // Búsquedas populares
             Text(
               'Búsquedas Populares',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: popularTags.map((tag) {
-                return Chip(
-                  label: Text(tag),
-                  backgroundColor: AppColors.blancoPuro,
-                  side: BorderSide(color: AppColors.grisMedio.withOpacity(0.2)),
-                );
-              }).toList(),
+              spacing: 12.0,
+              runSpacing: 12.0,
+              children: popularTags.map((tag) => Chip(
+                label: Text(tag),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              )).toList(),
             ),
           ],
         ),

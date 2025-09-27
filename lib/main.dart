@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cresta_app/features/onboarding/onboarding_screen.dart';
+import 'package:cresta_app/features/verification/verification_screen.dart';
 import 'package:cresta_app/theme/theme_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -71,6 +72,7 @@ class CrestaApp extends ConsumerWidget {
       darkTheme: darkTheme,
       themeMode: themeMode,
       home: const OnboardingScreen(),
+      //home: const VerificationScreen(),
     );
   }
 }

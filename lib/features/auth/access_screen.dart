@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cresta_app/features/auth/login_screen.dart';
 import 'package:cresta_app/features/auth/registration_screen.dart';
+import 'package:cresta_app/features/onboarding/onboarding_screen.dart';
 import 'package:cresta_app/main.dart';
 import 'package:cresta_app/theme/theme_provider.dart';
 import 'package:cresta_app/widgets/app_logo.dart';
@@ -15,13 +16,34 @@ class AccessScreen extends ConsumerWidget {
     final isDesktop = MediaQuery.of(context).size.width > 800;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline_rounded),
+            tooltip: 'Ver tutorial de nuevo',
+            color: isDesktop ? Theme.of(context).iconTheme.color : Colors.white,
+            onPressed: () {
+              ref.read(onboardingPageIndexProvider.notifier).state = 0;
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) => const OnboardingScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton(
         onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
         backgroundColor: Theme.of(context).cardColor,
         elevation: 1,
         child: Icon(
-          ref.watch(themeProvider) == ThemeMode.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          ref.watch(themeProvider) == ThemeMode.dark
+              ? Icons.light_mode_outlined
+              : Icons.dark_mode_outlined,
           color: AppColors.lavandaSuave,
         ),
       ),
@@ -43,7 +65,8 @@ class AccessScreen extends ConsumerWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(30)),
                     ),
                     child: _buildActionsPanel(context),
                   ),
@@ -61,7 +84,8 @@ class AccessScreen extends ConsumerWidget {
       decoration: const BoxDecoration(
         color: AppColors.lavandaSuave,
         image: DecorationImage(
-          image: NetworkImage('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80'),
+          image: NetworkImage(
+              'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80'),
           fit: BoxFit.cover,
           opacity: 0.1,
         ),
@@ -129,7 +153,8 @@ class AccessScreen extends ConsumerWidget {
             ),
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+                MaterialPageRoute(
+                    builder: (context) => const RegistrationScreen()),
               );
             },
             child: const Text('Crear Cuenta'),

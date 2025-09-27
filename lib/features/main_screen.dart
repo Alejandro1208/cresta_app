@@ -77,7 +77,6 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
             ),
           );
         } else {
-          // --- VISTA MÓVIL CON BOTTOMNAVIGATIONBAR ---
           return Scaffold(
             body: Center(child: _screens.elementAt(_selectedIndex)),
             bottomNavigationBar: BottomNavigationBar(
